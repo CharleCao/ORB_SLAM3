@@ -135,7 +135,11 @@ void LocalMapping::Run()
                             mTinit += mpCurrentKeyFrame->mTimeStamp - mpCurrentKeyFrame->mPrevKF->mTimeStamp;
                         if(!mpCurrentKeyFrame->GetMap()->GetIniertialBA2())
                         {
-                            if((mTinit<10.f) && (dist<0.02))
+                            // Nexumi is a slow, close-range handheld scan with
+                            // deliberate pauses. Do not classify a pause as a
+                            // bad IMU immediately after successful init.
+                            constexpr bool rejectLowMotionInit = false;
+                            if(rejectLowMotionInit && (mTinit<10.f) && (dist<0.02))
                             {
                                 cout << "Not enough motion for initializing. Reseting..." << endl;
                                 unique_lock<mutex> lock(mMutexReset);

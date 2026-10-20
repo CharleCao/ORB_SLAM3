@@ -1988,7 +1988,9 @@ void Tracking::Track()
                         if(pCurrentMap->isImuInitialized())
                             PredictStateIMU();
                         else
-                            bOK = false;
+                            // During slow handheld initialization, retain the
+                            // visual map and use the normal relocalizer.
+                            bOK = Relocalization();
 
                         if (mCurrentFrame.mTimeStamp-mTimeStampLost>time_recently_lost)
                         {
@@ -2148,8 +2150,9 @@ void Tracking::Track()
                 Verbose::PrintMess("Track lost for less than one second...", Verbose::VERBOSITY_NORMAL);
                 if(!pCurrentMap->isImuInitialized() || !pCurrentMap->GetIniertialBA2())
                 {
-                    cout << "IMU is not or recently initialized. Reseting active map..." << endl;
-                    mpSystem->ResetActiveMap();
+                    cout << "IMU is not or recently initialized. Retaining active map for relocalization..." << endl;
+                    // Keep the visual map available for relocalization; the
+                    // RECENTLY_LOST state decides whether it is unrecoverable.
                 }
 
                 mState=RECENTLY_LOST;
